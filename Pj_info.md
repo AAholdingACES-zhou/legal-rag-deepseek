@@ -27,5 +27,5 @@ law_rag_project/
 │
 ├── rag_law_bot.py                # RAG 主程序（终端问答）
 ├── .env                          # DeepSeek API Key（不上传github）
-├── README.md                     # 项目说明文档（本文件）
+├── Pj_info.md                    # 项目说明文档（本文件）
 └── requirements.txt              # 依赖（最简版本）
