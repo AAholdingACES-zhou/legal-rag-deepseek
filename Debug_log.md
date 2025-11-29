@@ -1,98 +1,129 @@
-# DEBUG_LOG
 
-记录我从零基础文科生，到成功搭建一个法律领域 RAG 系统的全过程
-包含所有踩坑、解决方案、技术突破与反思
+# 纯小白从 0 到 1 跑通一个 DeepSeek × LlamaIndex 的法律 RAG 系统
 
-# Debug 日志：从 0 到 1 跑通一个 DeepSeek × LlamaIndex 的法律 RAG 系统
+记录我从零基础商科生（本科商科，研究生法学，此前编程基础薄弱），到成功搭建一个法律领域 RAG 系统的全过程
 
-本项目是我作为商科生（经管法全沾了）探索 AI 产品工程的第一次完整实战。
-目标是：在 没有 OpenAI Key 的情况下，用 DeepSeek API + LlamaIndex 自己手搓出一个可以“引用法条 + 分析 + 作答”的 RAG 系统。
+内容包含：环境搭建、所有踩坑、错误信息、解决方案、关键 patch、最终运行结果
 
-整个过程包含了失败 → 重试 → 重新设计 → 手动 patch 框架 → 成功跑通的全过程。
-这篇 Debug 日志既是技术排错记录，也是一个 AI 产品从 0 到 1 的还原。
+---
+## 1. 项目背景与目标
 
-# 为什么要做这个 RAG？
+本项目是我作为 **商科 & 法律交叉背景学生** 的第一次 AI 工程实战。  
+目标是在 **没有 OpenAI Key 的前提下**，利用：
+
+- **DeepSeek Chat（OpenAI-Compatible API）**
+- **LlamaIndex（RAG 框架）**
+- **中文 BGE Embedding 模型**
+
+搭建一个能够 **引用法条 + 分析问题 + 引用课堂案例 + 给出回答** 的法律领域 RAG 系统。
+
+---
+
+为什么要做这个 RAG？
 
 这个项目有三个目的：
 
-🎯 展示我理解 RAG、向量数据库、LLM 的能力
+- 🎯 展示我理解 RAG、向量数据库、LLM 的能力
 
-🎯 证明我能从 0 完成 AI 原型（MVP）
+- 🎯 证明我能从 0 完成 AI 原型（MVP）
 
-🎯 作为 GitHub 作品集 & 简历项目
+- 🎯 GitHub 作品集 & 简历项目
 
-最终版本：
+---
 
-DeepSeek Chat（OpenAI-Compatible API） × LlamaIndex × BGE Embeddings 的法律问答 RAG
+## 2. 为什么不选择已有的云平台搭建？为什么不用OpenAI？
 
-# 为什么不选择已有的云平台搭建？为什么避开OpenAI？
+### 2.1 不使用 OpenAI API 的原因
+- 境外卡余额不足，恰逢周无内无法快速充值，急急急（真实客观原因）
+- 既然 DeepSeek 也兼容 OpenAI 格式，那么完全可以使用 DeepSeek 来跑 RAG
 
-首先为什么不用OpenAI的API：首先因为主包境外卡一分钱没有了（悲痛）。恰逢周末，转钱周一才能到账（也不想找tb充钱），想要快点跑通项目的主包选择用人民币充钱的DeepSeek。
+### 2.2 为什么不用 Flowise / Dify / Siliconflow etc……
 
-其次是：
+**Flowise**
+- 所有embeddings需要API Key
+- 本地部署流程复杂，对于个人用户来说太麻烦，遂放弃
 
-Flowise：上面所有embeddings都是需要API的，只有本地部署才可以用免费BGE，对于个人用户来说本地部署太麻烦，遂放弃
+**Dify**
+- 吞金兽
+- 文件一直排队，捣鼓了一晚上感觉被耍了，失败
 
-Dify：吞金兽，遂放弃（文件一直排队，捣鼓了一晚上感觉被耍了，失败）
+**Siliconflow**
+- 没有商用版本，没有办法实现我的需求，放弃
 
-Siliconflow：没有商用版本，没有办法实现我的需求，放弃
+---
 
-# 为什么选择本地环境搭建？后附debug踩坑记录
+## 3.为什么选择本地环境搭建？后附debug踩坑记录
 
-GPT推荐以及看起来可行，开始环境搭建到最后跑通大约用了3小时，debug多亏了GPT
+- GPT推荐 + 纯本地 + DeepSeek API（大陆充值友好），开始环境搭建到最后跑通大约用了3小时，debug多亏了GPT
 
-暂时顺利的过程：
-
-# 在 PowerShell 里进入工程目录：
+### 3.1 工程目录（暂时顺利的过程）
 
 ```
 cd D:\law_rag_project # 创建RAG项目文件夹
-
 ```
 
-# 创建虚拟环境
+### 3.2 创建虚拟环境
 
 ```
 python -m venv .venv
 ```
 
-# 激活Windows
+### 3.3 激活Windows
 
 ```
 .\.venv\Scripts\activate
 ```
 
-# 安装依赖
+---
+
+## 4. 安装依赖
+
+### 4.1 初次尝试（❌ 报错）
 ```
 pip install llama-index llama-index-llms-deepseek llama-index-embeddings-huggingface
 ```
-
-# ❌ pip版本很旧 + Python 版本不兼容 + llama-index-llms-deepseek 包名是错误的（官方名称变了，gpt自己提供错的）
-
-报错两次：
 
 <img width="1324" height="405" alt="image" src="https://github.com/user-attachments/assets/a9084731-f9bc-4ffb-b58c-0992455b7a40" />
 
 <img width="1325" height="451" alt="image" src="https://github.com/user-attachments/assets/131bc0cf-3493-434c-926c-f90fc8a586cc" />
 
-升级到gpt推荐的 python 3.11.9 
+报错原因：
 
+- pip 太旧
+- llama-index-llms-deepseek（包名错误，GPT提供错）
+- Python 版本不兼容
+  
 DeepSeek 采用 OpenAI 格式 API，所以用这个包：llama-index-llms-openai
 
-升级 pip 后, 怕vpn太卡使用清华源， 用 DeepSeek 的 OpenAI 兼容接口来跑 RAG：
+---
+
+
+## 5. 升级 pip 后, 怕vpn太卡使用清华源， 用 DeepSeek 的 OpenAI 兼容接口来跑 RAG：
 ```
 pip install "llama-index==0.11.10" llama-index-llms-openai llama-index-embeddings-openai python-dotenv -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-# 准备你的法律文本数据
 
-在 C:\law_rag_project 目录下，新建一个文件夹：
+---
+
+## 6. 准备你的法律文本数据
+
+在工程目录创建 data 文件夹：
+
 ```
 mkdir data
 ```
-把清洗好的《劳动合同法》 txt 文件labor_contract_law.txt放进data文件夹
+把清洗好的《劳动合同法》文件放入：
 
-# 资源管理器手动创建 . env
+```
+data/
+│── labor_contract_law_1_98.txt  # 劳动合同法 1-98 条
+│── cases_labor.txt              # 案例库
+```
+---
 
+## 7. 创建 . env（环境变量）
+
+手动创建 .env 文件（关键）：
 选择用 DeepSeek 的真实 API key，这里我还不知道之后要对LlamaIndex进行欺骗
 
 ```
@@ -101,19 +132,20 @@ OPENAI_API_KEY=你的深度求索_API_Key_填这里
 OPENAI_BASE_URL=https://api.deepseek.com 
 ```
 
-# 注意只写ds 的 api ； 以下解释来自gpt
+### 7.1. 为什么要写两遍？
 
 大部分 Python 模型调用库（包括 LlamaIndex 的 OpenAI-compatible 驱动）默认使用：
 
-```
-OPENAI_API_KEY
-OPENAI_BASE_URL
+因为：
 
-```
+- OpenAI SDK 默认读取 OPENAI_API_KEY
+- LlamaIndex 也会用 OpenAI-compatible 接口
+- 写两遍能同时被这两个系统识别
+- DeepSeek 本质是 “冒充（兼容）OpenAI API 格式”
 
-这是为了兼容 OpenAI 格式的 API ， 其实只有一个 key，但为了让所有代码都能找到它，必须写两遍
+---
 
-# 主程序文件rag_law_bot.py
+## 8. 主程序文件rag_law_bot.py
 
 ```
 import os
@@ -206,31 +238,37 @@ if __name__ == "__main__":
     main()
 ```
 
-# ❌ LlamaIndex 主包缺少部分子模块，需要额外安装一个扩展包 （全程gpt写代码的原因，但换我我更不会写）
+---
+
+## 9. 踩坑记录
+
+### 9.1 ❌ LlamaIndex 主包缺少部分子模块，需要额外安装一个扩展包
+
+报错：
 
 <img width="1332" height="275" alt="image" src="https://github.com/user-attachments/assets/c3fd27dd-fba0-4ae2-b343-30e693b96bac" />
+
 ```
 ModuleNotFoundError: No module named 'llama_index.embeddings.huggingface'
 ```
-# 保持现在这个虚拟环境，执行：
+
+解决：
+
 ```
+# 保持现在这个虚拟环境，执行：
+
 pip install llama-index-embeddings-huggingface -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-装了很长时间大概10分钟以上，因为llama-index-* 会连续装一堆依赖包
 
-# 版本不兼容报错，可以忽略
+版本不兼容报错，可以忽略
 
 <img width="1205" height="825" alt="image" src="https://github.com/user-attachments/assets/213cb297-fe60-4bb5-aec4-75595f2971f1" />
 
-翻译：
+原因：
 
-llama-index-xxx 需要 llama-index-core <0.12.0, >=0.11.0, 但你现在有的是 0.14.8，版本不兼容
+llama-index-xxx 需要 llama-index-core <0.12.0, >=0.11.0, 但你现在有的是 0.14.8，版本不兼容，但是问题不大，安装成功
 
-部分先前已经装过一批 llama-index-* 包（版本比较旧，要求 core 在 0.11.x 左右），但是问题不大，安装成功
-```
-Successfully installed ... llama-index-embeddings-huggingface-0.6.1 ... torch-2.9.1 transformers-4.57.3
-```
-# 如果之后真的因为版本冲突挂了怎么办？ 赶时间没必要
+### 9.2 如果之后真的因为版本冲突挂了怎么办？ 赶时间没必要
 ```
 # 1）先把以前装的 llama-index 系列都卸掉
 pip uninstall -y "llama-index" "llama-index-*"
@@ -240,51 +278,37 @@ pip install "llama-index==0.11.23" \
             "llama-index-llms-openai==0.1.16" \
             "llama-index-embeddings-huggingface==0.1.6"
 ```
-# ❌ 运行后出现第一个BUG 
+### 9.3 ❌ BUG1: .env 文件未生效
 ```
 (.venv311) PS C:\law_rag_project> python rag_law_bot.py Traceback (most recent call last): File "C:\law_rag_project\rag_law_bot.py", line 19, in <module> raise ValueError("没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。") ValueError: 没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。 (.venv311) PS C:\law_rag_project>
 ```
-本身是因为.env文件后缀错误，我一开始写的是 env.txt
+原因：文件名写成 env.txt
 
-# 强制重命名
+解决：
 ```
+# 强制重命名
+
 ren env.txt .env
 
 dir -Force
 ```
 <img width="1207" height="557" alt="image" src="https://github.com/user-attachments/assets/f7216d92-2ef6-4f77-b754-74ffb90e719f" />
 
-# ❌ 运行后出现第二个BUG 【重要】
+### 9.4 ❌ BUG2: LlamaIndex 不认识 deepseek-chat（模型名校验失败）
+
 
 <img width="679" height="258" alt="image" src="https://github.com/user-attachments/assets/cb42f92d-8db6-4c57-a5d7-79f3046cc61c" />
 
-LlamaIndex 不认识 deepseek-chat 这个“OpenAI 模型名”，只认识官方的 GPT 模型名（gpt-4o、gpt-3.5-turbo 等）
-```
-#  LlamaIndex 打补丁，让它认识 deepseek-chat
-_orig_ctx_func = openai_utils.openai_modelname_to_contextsize
-
-def _patched_openai_modelname_to_contextsize(model_name: str) -> int:
-    # 对 deepseek 系列模型，返回一个固定的 context window
-    if model_name.startswith("deepseek"):
-        # DeepSeek 官方上下文一般是 8K 或 16K，这里保守给 8192
-        return 8192
-    # 其他模型依然走原来的逻辑
-    return _orig_ctx_func(model_name)
-
-openai_utils.openai_modelname_to_contextsize = _patched_openai_modelname_to_contextsize
-print("🔧 已为 LlamaIndex 打补丁，使其支持 deepseek-chat 模型。")
-```
-# 持续报错
-
 <img width="617" height="269" alt="image" src="https://github.com/user-attachments/assets/70126847-91c8-4fe9-b8e2-326bb6c78b5a" />
 
-解释：LlamaIndex 这个包在别的文件里已经把函数“拷贝了一份引用”，所以我们在代码里 monkey-patch 了 utils.openai_modelname_to_contextsize 也没法覆盖那份旧引用
+报错：
 
-LlamaIndex 报 Unknown model 'deepseek-chat'，就是因为：openai_modelname_to_contextsize() 只认这个 ALL_AVAILABLE_MODELS 里的 key is_chat_model() 只认 CHAT_MODELS 里的 key
-
-# 找到报错源py文件，在里面加两行，把 deepseek-chat 把它“骗”成一个已知模型就行（关键）
-
-报错位置：C:\law_rag_project\.venv311\Lib\site-packages\llama_index\llms\openai\utils.py line220
+```
+Unknown model 'deepseek-chat'
+```
+原因：LlamaIndex 内部维护了一份 model whitelist，而 deepseek-chat 不在里面 → 直接报错
+解决方式：手动 patch LlamaIndex 内部的模型列表
+修改 llama_index/llms/openai/utils.py：
 
 ```
 ALL_AVAILABLE_MODELS = {
@@ -305,17 +329,20 @@ CHAT_MODELS = {
     "deepseek-chat": 8192,   # 👈 这里也加一行
 }
 ```
+#### 效果：成功骗过 LlamaIndex，使其接受 deepseek-chat
 
-# ❌ 运行后出现第三个BUG 【最重要】
+### 9.5 ❌ OpenAI SDK 仍然在尝试走 openai.com
 
 查询出错，openai SDK仍然认为key是OpenAI的key：
 ```
 Error code: 401 - {'error': {'message': 'Incorrect API key provided: ************. 
 You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
 ```
-必须手动告诉openai SDK，base_url 到 deepseek，key 是 deepseek key，于是：
+说明：
+OpenAI SDK 没有使用 DeepSeek 的 base_url，而是默认访问 openai.com。
 
-# 加入🔧 DeepSeek 补丁
+解决：手动覆盖 base_url：
+
 ```
 import openai
 
@@ -324,12 +351,17 @@ openai.base_url = "https://api.deepseek.com/v1"
 
 print("OpenAI SDK 已改用 DeepSeek API")
 print("✅ 已读取到 OPENAI_API_KEY，准备初始化 LLM 与向量模型...")
+
 ```
-# 后续美化输出
+成功让 OpenAI SDK → 走 DeepSeek API
+
+# 10. 后续美化输出
 
 <img width="1210" height="470" alt="image" src="https://github.com/user-attachments/assets/6bdf2074-6f3f-44b8-b1a9-e0b0112576a0" />
 
-160个字符限制太短，直接改为：
+原因：160个字符限制太短
+
+解决：不截断法条内容
 ```
 def pretty_print_response(resp):
     """美化输出：正文 + 引用片段"""
