@@ -1,6 +1,6 @@
 # ⚖️ Chinese Legal RAG System — 基于 DeepSeek + LlamaIndex 的劳动合同法智能问答+期末考复习系统
 
-本项目使用 **DeepSeek Chat + LlamaIndex + BGE 中文向量模型** 构建一个“可本地运行”的**法律检索增强生成（RAG）问答系统**，目前已支持对《劳动合同法》条文进行检索、引用与基础分析，后续会加入劳动法案例库，案例库材料来自复旦大学法学院劳动法课程，承担期末复习RAG的功能
+本项目使用 **DeepSeek Chat + LlamaIndex + BGE 中文向量模型** 构建一个“可本地运行”的**法律检索增强生成（RAG）问答系统**，目前已支持对《劳动合同法》条文进行检索、引用与基础分析，已经加入劳动法案例库。案例库材料来自复旦大学法学院劳动法课程，承担期末复习bot的功能。
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
 ![DeepSeek](https://img.shields.io/badge/Model-DeepSeekChat-red?logo=openai)
 ![LlamaIndex](https://img.shields.io/badge/RAG-LlamaIndex-green)
@@ -34,7 +34,7 @@ law_rag_project/
 │   ├── cases/                               # 劳动法案例库（类案检索）
 │       ├── cases_labor.txt                  # 已清洗的14个类案（Case 1–14）
 │       └── ...                              # （未来可扩：民法典雇佣、竞业限制案例等）  
-|
+│
 ├── rag_law_bot.py                           # RAG 主程序（DeepSeek + LlamaIndex）
 │                                            # - 支持多索引（法条+案例）
 │                                            # - 三段式输出：结论/法条/类案
@@ -46,6 +46,6 @@ law_rag_project/
 ├── Debug_log.md                             # Debug 全纪录（从0到1完整日志）
 │ 
 ├── RAG_Dev_log.md                           # 调试bot的过程记录
-|
+│
 └── requirements.txt                         # 最小依赖（llama-index, embedding, dotenv 等）
 ```
