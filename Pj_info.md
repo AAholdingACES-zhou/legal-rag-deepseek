@@ -21,11 +21,23 @@
 ```bash
 law_rag_project/
 │
-├── data/                               # 法条/案例文件（本地知识库）
-│   ├── labor_contract_law_1_98.txt     # 清洗后的《劳动合同法》1-98条
-│   └── cases_labor.txt                 # 劳动法案例库
+├── data/                                    # 本地知识库（Legal Corpus）
+│   ├── statutes/                            # 法条库（结构化知识）
+│   │   ├── labor_contract_law_1_98.txt      # 《劳动合同法》1–98条（清洗版）
+│   │   └── ...                              # （未来可扩：工伤条例/仲裁法等）
+│   │
+│   ├── cases/                               # 劳动法案例库（类案检索）
+│       ├── cases_labor.txt                  # 已清洗的14个类案（Case 1–14）
+│       └── ...                              # （未来可扩：民法典雇佣、竞业限制案例等）  
+|
+├── rag_law_bot.py                           # RAG 主程序（DeepSeek + LlamaIndex）
+│                                             # - 支持多索引（法条+案例）
+│                                             # - 三段式输出：结论/法条/类案
 │
-├── rag_law_bot.py                # RAG 主程序（终端问答）
-├── .env                          # DeepSeek API Key（不上传github）
-├── Pj_info.md                    # 项目说明文档（本文件）
-└── requirements.txt              # 依赖（最简版本）
+├── .env                                      # API Key（不上传 GitHub）
+│
+├── Pj_info.md                                # 项目说明文档（功能介绍 / 设计思路）
+│
+├── Debug_log.md                              # Debug 全纪录（从0到1完整日志）
+│
+└── requirements.txt                          # 最小依赖（llama-index, embedding, dotenv 等）
