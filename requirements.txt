@@ -1,0 +1,17 @@
+# Core dependencies
+llama-index==0.10.42
+llama-index-llms-openai==0.1.19
+llama-index-embeddings-huggingface==0.1.9
+
+# Embedding model dependency
+sentence-transformers==2.7.0
+
+# OpenAI (用于兼容 DeepSeek API)
+openai>=1.40.2
+
+# 环境变量管理
+python-dotenv==1.0.1
+
+# 其他常规依赖
+requests>=2.31.0
+tqdm>=4.66.1
