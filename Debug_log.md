@@ -59,7 +59,7 @@
 ### 3.1 工程目录（暂时顺利的过程）
 
 ```
-cd D:\law_rag_project # 创建RAG项目文件夹
+cd C:\law_rag_project # 创建RAG项目文件夹
 ```
 
 ### 3.2 创建虚拟环境
