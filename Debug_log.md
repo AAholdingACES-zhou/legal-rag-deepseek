@@ -3,7 +3,7 @@
 记录我从零基础文科生，到成功搭建一个法律领域 RAG 系统的全过程
 包含所有踩坑、解决方案、技术突破与反思
 
-#Debug 日志：从 0 到 1 跑通一个 DeepSeek × LlamaIndex 的法律 RAG 系统
+# Debug 日志：从 0 到 1 跑通一个 DeepSeek × LlamaIndex 的法律 RAG 系统
 
 本项目是我作为商科生（经管法全沾了）探索 AI 产品工程的第一次完整实战。
 目标是：在 没有 OpenAI Key 的情况下，用 DeepSeek API + LlamaIndex 自己手搓出一个可以“引用法条 + 分析 + 作答”的 RAG 系统。
@@ -77,9 +77,7 @@ pip install llama-index llama-index-llms-deepseek llama-index-embeddings-hugging
 
 升级到gpt推荐的 python 3.11.9 
 
-DeepSeek 采用 OpenAI 格式 API，所以用这个包：
-
-llama-index-llms-openai
+DeepSeek 采用 OpenAI 格式 API，所以用这个包：llama-index-llms-openai
 
 升级 pip 后, 怕vpn太卡使用清华源， 用 DeepSeek 的 OpenAI 兼容接口来跑 RAG：
 ```
@@ -91,26 +89,31 @@ pip install "llama-index==0.11.10" llama-index-llms-openai llama-index-embedding
 ```
 mkdir data
 ```
-把清洗好的《劳动合同法》 txt 文件放进data文件夹
+把清洗好的《劳动合同法》 txt 文件labor_contract_law.txt放进data文件夹
 
 # 资源管理器手动创建 . env
 
 选择用 DeepSeek 的真实 API key，这里我还不知道之后要对LlamaIndex进行欺骗
 
+```
 DEEPSEEK_API_KEY=你的深度求索_API_Key_填这里
 OPENAI_API_KEY=你的深度求索_API_Key_填这里
 OPENAI_BASE_URL=https://api.deepseek.com 
+```
 
 # 注意只写ds 的 api ； 以下解释来自gpt
 
 大部分 Python 模型调用库（包括 LlamaIndex 的 OpenAI-compatible 驱动）默认使用：
 
+```
 OPENAI_API_KEY
 OPENAI_BASE_URL
 
+```
+
 这是为了兼容 OpenAI 格式的 API ， 其实只有一个 key，但为了让所有代码都能找到它，必须写两遍
 
-# 新建Python文件 rag_law_bot.py
+# 主程序文件rag_law_bot.py
 
 ```
 import os
@@ -223,9 +226,7 @@ pip install llama-index-embeddings-huggingface -i https://pypi.tuna.tsinghua.edu
 
 llama-index-xxx 需要 llama-index-core <0.12.0, >=0.11.0, 但你现在有的是 0.14.8，版本不兼容
 
-部分先前已经装过一批 llama-index-* 包（版本比较旧，要求 core 在 0.11.x 左右）
-
-但是问题不大，安装成功
+部分先前已经装过一批 llama-index-* 包（版本比较旧，要求 core 在 0.11.x 左右），但是问题不大，安装成功
 ```
 Successfully installed ... llama-index-embeddings-huggingface-0.6.1 ... torch-2.9.1 transformers-4.57.3
 ```
@@ -243,7 +244,7 @@ pip install "llama-index==0.11.23" \
 ```
 (.venv311) PS C:\law_rag_project> python rag_law_bot.py Traceback (most recent call last): File "C:\law_rag_project\rag_law_bot.py", line 19, in <module> raise ValueError("没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。") ValueError: 没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。 (.venv311) PS C:\law_rag_project>
 ```
-.env文件后缀错误，我一开始写的是 env.txt
+本身是因为.env文件后缀错误，我一开始写的是 env.txt
 
 # 强制重命名
 ```
@@ -277,15 +278,14 @@ print("🔧 已为 LlamaIndex 打补丁，使其支持 deepseek-chat 模型。")
 
 <img width="617" height="269" alt="image" src="https://github.com/user-attachments/assets/70126847-91c8-4fe9-b8e2-326bb6c78b5a" />
 
-# 解释：LlamaIndex 这个包在别的文件里已经把函数“拷贝了一份引用”，所以我们在代码里 monkey-patch 了 utils.openai_modelname_to_contextsize 也没法覆盖那份旧引用
+解释：LlamaIndex 这个包在别的文件里已经把函数“拷贝了一份引用”，所以我们在代码里 monkey-patch 了 utils.openai_modelname_to_contextsize 也没法覆盖那份旧引用
 
-# LlamaIndex 报 Unknown model 'deepseek-chat'，就是因为：openai_modelname_to_contextsize() 只认这个 ALL_AVAILABLE_MODELS 里的 key
+LlamaIndex 报 Unknown model 'deepseek-chat'，就是因为：openai_modelname_to_contextsize() 只认这个 ALL_AVAILABLE_MODELS 里的 key is_chat_model() 只认 CHAT_MODELS 里的 key
 
-is_chat_model() 只认 CHAT_MODELS 里的 key
+# 找到报错源py文件，在里面加两行，把 deepseek-chat 把它“骗”成一个已知模型就行（关键）
 
-# 找到报错源文件，把 deepseek-chat 把它“骗”成一个已知模型就行（关键）
+报错位置：C:\law_rag_project\.venv311\Lib\site-packages\llama_index\llms\openai\utils.py line220
 
-C:\law_rag_project\.venv311\Lib\site-packages\llama_index\llms\openai\utils.py
 ```
 ALL_AVAILABLE_MODELS = {
     **O1_MODELS,
@@ -308,12 +308,12 @@ CHAT_MODELS = {
 
 # ❌ 运行后出现第三个BUG 【最重要】
 
-查询出错：
+查询出错，openai SDK仍然认为key是OpenAI的key：
 ```
 Error code: 401 - {'error': {'message': 'Incorrect API key provided: ************. 
 You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
 ```
-必须手动告诉openai SDK，base_url 到 deepseek，key 是 deepseek key
+必须手动告诉openai SDK，base_url 到 deepseek，key 是 deepseek key，于是：
 
 # 加入🔧 DeepSeek 补丁
 ```
