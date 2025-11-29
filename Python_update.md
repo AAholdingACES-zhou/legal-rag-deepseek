@@ -254,7 +254,7 @@ while True:
         print("❌ 查询出错：", e)
 ```
 #### 2.1 prompt 制定输出内容
-#### 2.2 问题：输出类案过多，且没有分析内容，输出的文本逻辑混乱
+#### 2.2 问题：模型回答的感觉不够模块化，也没有类案分析
 ```
 💬 请输入你的问题（输入 q 退出）：
 > 公司口头录用但一直不签合同，我可以拿双倍工资吗？
@@ -384,3 +384,145 @@ while True:
 <img width="1517" height="618" alt="image" src="https://github.com/user-attachments/assets/02831026-7297-43b5-a3c9-164ae2f283d3" />
 
 ## 3. 版本 3.0 
+```
+import os
+from dotenv import load_dotenv
+
+# 1. 先加载 .env
+load_dotenv()
+
+if os.getenv("OPENAI_API_KEY") is None:
+    raise ValueError("没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。")
+
+# 2. 强制 OpenAI SDK 使用 DeepSeek API（关键补丁）
+import openai
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.base_url = os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com/v1")
+
+print(f"已为 OpenAI SDK 设置 base_url = {openai.base_url}")
+print("✅ 已读取到 OPENAI_API_KEY，准备初始化 LLM 与向量模型...")
+
+from llama_index.core import (
+    SimpleDirectoryReader,
+    VectorStoreIndex,
+    Settings,
+)
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.openai import OpenAI
+import llama_index.llms.openai.utils as openai_utils
+
+
+# 2. 给 LlamaIndex 打一个“小补丁”，让它认识 deepseek-chat
+_orig_ctx_func = openai_utils.openai_modelname_to_contextsize
+
+
+def _patched_openai_modelname_to_contextsize(model_name: str) -> int:
+    # 对 deepseek 系列模型，返回一个固定的 context window
+    if model_name.startswith("deepseek"):
+        # DeepSeek 官方上下文一般是 8K 或 16K，这里保守给 8192
+        return 8192
+    # 其他模型依然走原来的逻辑
+    return _orig_ctx_func(model_name)
+
+
+openai_utils.openai_modelname_to_contextsize = _patched_openai_modelname_to_contextsize
+print("🔧 已为 LlamaIndex 打补丁，使其支持 deepseek-chat 模型。")
+
+print("📦 正在加载向量模型: BAAI/bge-small-zh-v1.5 ...")
+embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-zh-v1.5")
+Settings.embed_model = embed_model
+
+# 4. 配置 DeepSeek 作为 LLM（通过 OpenAI 兼容协议）
+llm = OpenAI(
+    model="deepseek-chat",
+    temperature=0.2,
+)
+Settings.llm = llm
+print("🤖 已配置 deepseek-chat 作为对话模型。")
+
+# 5. 从 ./data 目录加载法律文档（法条 + 案例库）
+DATA_DIR = "./data"
+print(f"📚 正在加载本地文档 {DATA_DIR} ...")
+documents = SimpleDirectoryReader(DATA_DIR).load_data()
+print(f"已加载文档数量: {len(documents)}")
+
+# 6. 构建向量索引
+print("🧠 正在构建向量索引（VectorStoreIndex）...")
+index = VectorStoreIndex.from_documents(documents)
+print("✅ 索引构建完成！可以开始提问了～")
+
+# 7. 创建查询引擎
+query_engine = index.as_query_engine(
+    similarity_top_k=5,          # 稍微大一点，方便同时命中法条 + 案例
+    response_mode="compact",
+)
+
+
+def pretty_print_response(resp):
+    """只输出模型回答本身，不再打印调试用的引用片段。"""
+    print("\n====== 模型回答 ======\n")
+    print(str(resp))
+    print("\n======================\n")
+
+
+# 8. 简单 REPL 循环：在终端里和 bot 对话
+while True:
+    user_input = input("\n💬 请输入你的问题（输入 q 退出）：\n> ").strip()
+    if user_input.lower() in ["q", "quit", "exit"]:
+        print("👋 已退出，再见～")
+        break
+
+    if not user_input:
+        continue
+
+    # 🔑 核心提示词：强制三段式输出 + 只允许 1 个类案 + 不要出现 score / Top3 等词
+    full_prompt = f"""
+你是一名中国劳动法专业助理，需要基于《劳动合同法》条文和预先整理的典型案例库，
+回答下面的用户问题。请严格按照下面的结构作答，并遵守后面的规则。
+
+【回答结构】
+
+1.【结论与分析】
+- 用 1～3 句话先给出直接结论（是否违法、谁承担责任、劳动者大致可以主张哪些权利）。
+- 再用 3～6 句话进行法律论证：围绕《劳动合同法》的构成要件进行分析，
+  例如权利义务、违法点、救济路径等。这里请尽量用你自己的法律推理，
+  不要大段照抄案例中的“【理由】”原文，而是用“抽象规则 + 具体适用”的方式来写。
+
+2.【适用法条及条文内容】
+- 列出本案中起关键作用的法律条文，优先选择《劳动合同法》，如有必要可补充实施条例或司法解释。
+- 每一条单独一行，采用如下格式（示例）：
+  - 《劳动合同法》第82条【不订立书面劳动合同的法律责任】：用人单位自用工之日起超过一个月不满一年的……（可概括或适当引用原文要点）。
+- 条文数量建议控制在 1～5 条之间，尽量精准，不要一股脑把所有相关条文都写上。
+- 如果在当前知识库中没有检索到明确对应条文，请如实写明：“未在知识库中检索到明确对应条文，可依据一般劳动法原理进行类推适用”。
+
+3.【类案参考（如有）】
+- 如果你在本次检索到的上下文中，看到了我们整理的案例（通常以“案例一 / 案例1”“案例二 / 案例2”等开头），
+  请在所有相关案例中【只选择 1 个你认为最相似、最有代表性的】进行简要介绍。
+- 输出格式示例：
+  - 案例名称：案例八 无固定期限劳动合同期间订立固定期限合同后拒绝续签是否合法
+  - 关键事实：……
+  - 裁判结论：……
+  - 对本案的启示：……
+- 如果没有合适的类案（或者命中的案例与本案情形明显不同），请只写一句：
+  “类案参考：无合适类案”。
+
+【重要约束】
+
+- 不要直接输出底层检索片段的原始格式（例如【法条】、【内容】、【理由】的大段原文）。
+  你可以参考它们，但需要用自己的话进行总结、重写和结构化。
+- 你的回答对象是法律专业学生或法律从业者，可以适度使用专业术语，
+  但整体表达要清晰、有条理。
+
+【用户问题】
+{user_input}
+"""
+
+    try:
+        resp = query_engine.query(full_prompt)
+        pretty_print_response(resp)
+    except Exception as e:
+        print("❌ 查询出错：", e)
+```
+#### 3.1
+
