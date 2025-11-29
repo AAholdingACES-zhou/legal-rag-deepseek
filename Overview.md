@@ -48,3 +48,4 @@ law_rag_project/
 ├── RAG_Dev_log.md                           # 调试bot的过程记录
 |
 └── requirements.txt                         # 最小依赖（llama-index, embedding, dotenv 等）
+```
