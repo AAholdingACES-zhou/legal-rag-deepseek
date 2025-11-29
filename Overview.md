@@ -38,13 +38,13 @@ law_rag_project/
 ├── rag_law_bot.py                           # RAG 主程序（DeepSeek + LlamaIndex）
 │                                            # - 支持多索引（法条+案例）
 │                                            # - 三段式输出：结论/法条/类案
-│
+│ 
 ├── .env                                     # API Key
-│
+│ 
 ├── Overview.md                              # 项目说明文档（功能介绍 / 设计思路）
 │
 ├── Debug_log.md                             # Debug 全纪录（从0到1完整日志）
-│
+│ 
 ├── RAG_Dev_log.md                           # 调试bot的过程记录
 |
 └── requirements.txt                         # 最小依赖（llama-index, embedding, dotenv 等）
