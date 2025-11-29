@@ -1,6 +1,11 @@
 # ⚖️ Chinese Legal RAG System — 基于 DeepSeek + LlamaIndex 的劳动合同法智能问答+期末考复习系统
 
 本项目使用 **DeepSeek Chat + LlamaIndex + BGE 中文向量模型** 构建一个“可本地运行”的**法律检索增强生成（RAG）问答系统**，目前已支持对《劳动合同法》条文进行检索、引用与基础分析，后续会加入劳动法案例库，案例库材料来自复旦大学法学院劳动法课程，承担期末复习RAG的功能
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![DeepSeek](https://img.shields.io/badge/Model-DeepSeekChat-red?logo=openai)
+![LlamaIndex](https://img.shields.io/badge/RAG-LlamaIndex-green)
+![Embedding](https://img.shields.io/badge/Embedding-BGE--small--zh-v1.5-yellow)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
 
