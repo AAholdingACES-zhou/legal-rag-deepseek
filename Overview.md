@@ -11,7 +11,7 @@
 
 ## 📌 项目亮点（Overview）
 
-- 利用 **DeepSeek Chat（OpenAI 兼容 API）** 作为大语言模型，避免直接依赖 OpenAI Key（适用于OpenAI Key暂时没有钱但是Deepseek有钱的情况）
+- 利用 **DeepSeek Chat（OpenAI 兼容 API）** 作为大语言模型，避免直接依赖 OpenAI Key（通俗来说适用于OpenAI Key暂时没API的情况）
 - 使用 **BAAI/bge-small-zh-v1.5** 作为中文嵌入模型，构建法律文本向量索引
 - 基于 **LlamaIndex** 搭建完整 RAG 流程：本地文档加载 → 向量化 → 索引 → 检索 → LLM 生成
 - 支持在终端交互式提问：例如「试用期内能否随意辞退劳动者？」并返回结论 + 引用法条 + 引用类案
