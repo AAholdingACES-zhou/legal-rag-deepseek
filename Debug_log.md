@@ -1,4 +1,4 @@
-#DEBUG_LOG
+# DEBUG_LOG
 
 记录我从零基础文科生，到成功搭建一个法律领域 RAG 系统的全过程
 包含所有踩坑、解决方案、技术突破与反思
@@ -22,6 +22,7 @@
 🎯 作为 GitHub 作品集 & 简历项目
 
 最终版本：
+
 DeepSeek Chat（OpenAI-Compatible API） × LlamaIndex × BGE Embeddings 的法律问答 RAG
 
 # 为什么不选择已有的云平台搭建？为什么避开OpenAI？
@@ -44,19 +45,27 @@ GPT推荐以及看起来可行，开始环境搭建到最后跑通大约用了3�
 
 # 在 PowerShell 里进入工程目录：
 
+```
 cd D:\law_rag_project # 创建RAG项目文件夹
+
+```
 
 # 创建虚拟环境
 
+```
 python -m venv .venv
+```
 
 # 激活Windows
 
+```
 .\.venv\Scripts\activate
+```
 
 # 安装依赖
-
+```
 pip install llama-index llama-index-llms-deepseek llama-index-embeddings-huggingface
+```
 
 # ❌ pip版本很旧 + Python 版本不兼容 + llama-index-llms-deepseek 包名是错误的（官方名称变了，gpt自己提供错的）
 
@@ -73,15 +82,15 @@ DeepSeek 采用 OpenAI 格式 API，所以用这个包：
 llama-index-llms-openai
 
 升级 pip 后, 怕vpn太卡使用清华源， 用 DeepSeek 的 OpenAI 兼容接口来跑 RAG：
-
+```
 pip install "llama-index==0.11.10" llama-index-llms-openai llama-index-embeddings-openai python-dotenv -i https://pypi.tuna.tsinghua.edu.cn/simple
-
+```
 # 准备你的法律文本数据
 
 在 C:\law_rag_project 目录下，新建一个文件夹：
-
+```
 mkdir data
-
+```
 把清洗好的《劳动合同法》 txt 文件放进data文件夹
 
 # 资源管理器手动创建 . env
@@ -101,10 +110,9 @@ OPENAI_BASE_URL
 
 这是为了兼容 OpenAI 格式的 API ， 其实只有一个 key，但为了让所有代码都能找到它，必须写两遍
 
-# 新建Python文件 
+# 新建Python文件 rag_law_bot.py
 
-rag_law_bot.py
-
+```
 import os
 from dotenv import load_dotenv
 
@@ -193,18 +201,18 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+```
 
 # ❌ LlamaIndex 主包缺少部分子模块，需要额外安装一个扩展包 （全程gpt写代码的原因，但换我我更不会写）
 
 <img width="1332" height="275" alt="image" src="https://github.com/user-attachments/assets/c3fd27dd-fba0-4ae2-b343-30e693b96bac" />
-
+```
 ModuleNotFoundError: No module named 'llama_index.embeddings.huggingface'
-
+```
 # 保持现在这个虚拟环境，执行：
-
+```
 pip install llama-index-embeddings-huggingface -i https://pypi.tuna.tsinghua.edu.cn/simple
-
+```
 装了很长时间大概10分钟以上，因为llama-index-* 会连续装一堆依赖包
 
 # 版本不兼容报错，可以忽略
@@ -218,11 +226,11 @@ llama-index-xxx 需要 llama-index-core <0.12.0, >=0.11.0, 但你现在有的是
 部分先前已经装过一批 llama-index-* 包（版本比较旧，要求 core 在 0.11.x 左右）
 
 但是问题不大，安装成功
-
+```
 Successfully installed ... llama-index-embeddings-huggingface-0.6.1 ... torch-2.9.1 transformers-4.57.3
-
+```
 # 如果之后真的因为版本冲突挂了怎么办？ 赶时间没必要
-
+```
 # 1）先把以前装的 llama-index 系列都卸掉
 pip uninstall -y "llama-index" "llama-index-*"
 
@@ -230,19 +238,19 @@ pip uninstall -y "llama-index" "llama-index-*"
 pip install "llama-index==0.11.23" \
             "llama-index-llms-openai==0.1.16" \
             "llama-index-embeddings-huggingface==0.1.6"
-
+```
 # ❌ 运行后出现第一个BUG 
-
+```
 (.venv311) PS C:\law_rag_project> python rag_law_bot.py Traceback (most recent call last): File "C:\law_rag_project\rag_law_bot.py", line 19, in <module> raise ValueError("没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。") ValueError: 没有找到 OPENAI_API_KEY，请检查 .env 文件是否配置正确。 (.venv311) PS C:\law_rag_project>
-
+```
 .env文件后缀错误，我一开始写的是 env.txt
 
 # 强制重命名
-
+```
 ren env.txt .env
 
 dir -Force
-
+```
 <img width="1207" height="557" alt="image" src="https://github.com/user-attachments/assets/f7216d92-2ef6-4f77-b754-74ffb90e719f" />
 
 # ❌ 运行后出现第二个BUG 【重要】
@@ -250,7 +258,7 @@ dir -Force
 <img width="679" height="258" alt="image" src="https://github.com/user-attachments/assets/cb42f92d-8db6-4c57-a5d7-79f3046cc61c" />
 
 LlamaIndex 不认识 deepseek-chat 这个“OpenAI 模型名”，只认识官方的 GPT 模型名（gpt-4o、gpt-3.5-turbo 等）
-
+```
 #  LlamaIndex 打补丁，让它认识 deepseek-chat
 _orig_ctx_func = openai_utils.openai_modelname_to_contextsize
 
@@ -264,7 +272,7 @@ def _patched_openai_modelname_to_contextsize(model_name: str) -> int:
 
 openai_utils.openai_modelname_to_contextsize = _patched_openai_modelname_to_contextsize
 print("🔧 已为 LlamaIndex 打补丁，使其支持 deepseek-chat 模型。")
-
+```
 # 持续报错
 
 <img width="617" height="269" alt="image" src="https://github.com/user-attachments/assets/70126847-91c8-4fe9-b8e2-326bb6c78b5a" />
@@ -278,7 +286,7 @@ is_chat_model() 只认 CHAT_MODELS 里的 key
 # 找到报错源文件，把 deepseek-chat 把它“骗”成一个已知模型就行（关键）
 
 C:\law_rag_project\.venv311\Lib\site-packages\llama_index\llms\openai\utils.py
-
+```
 ALL_AVAILABLE_MODELS = {
     **O1_MODELS,
     **GPT4_MODELS,
@@ -296,17 +304,19 @@ CHAT_MODELS = {
     **AZURE_TURBO_MODELS,
     "deepseek-chat": 8192,   # 👈 这里也加一行
 }
-
+```
 
 # ❌ 运行后出现第三个BUG 【最重要】
 
-查询出错： Error code: 401 - {'error': {'message': 'Incorrect API key provided: ************. 
+查询出错：
+```
+Error code: 401 - {'error': {'message': 'Incorrect API key provided: ************. 
 You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'code': 'invalid_api_key', 'param': None}}
-
+```
 必须手动告诉openai SDK，base_url 到 deepseek，key 是 deepseek key
 
 # 加入🔧 DeepSeek 补丁
-
+```
 import openai
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -314,13 +324,13 @@ openai.base_url = "https://api.deepseek.com/v1"
 
 print("OpenAI SDK 已改用 DeepSeek API")
 print("✅ 已读取到 OPENAI_API_KEY，准备初始化 LLM 与向量模型...")
-
+```
 # 后续美化输出
 
 <img width="1210" height="470" alt="image" src="https://github.com/user-attachments/assets/6bdf2074-6f3f-44b8-b1a9-e0b0112576a0" />
 
 160个字符限制太短，直接改为：
-
+```
 def pretty_print_response(resp):
     """美化输出：正文 + 引用片段"""
     print("\n====== 模型回答 ======\n")
@@ -333,7 +343,7 @@ def pretty_print_response(resp):
             text = sn.node.get_content().strip()
             print(f"\n[{i}] score={sn.score:.3f}\n{text}\n")
 
-
+```
 
 
 
