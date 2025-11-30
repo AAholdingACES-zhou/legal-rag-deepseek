@@ -1,6 +1,6 @@
 # ⚖️ Chinese Legal RAG System — 基于 DeepSeek + LlamaIndex 的劳动合同法智能问答+期末考复习系统
 
-本项目使用 **DeepSeek Chat + LlamaIndex + BGE 中文向量模型** 构建一个“可本地运行”的**法律检索增强生成（RAG）问答系统**，目前已支持对《劳动合同法》条文进行检索、引用与基础分析，已经加入劳动法案例库。案例库材料来自复旦大学法学院劳动法课程，承担期末复习bot的功能。
+本项目使用 **DeepSeek Chat + LlamaIndex + BGE 向量模型** 构建一个“可本地运行”的**劳动法律检索增强生成（RAG）问答系统**，目前已支持对《劳动合同法》条文进行检索、引用与基础分析，并加入劳动法案例库。案例库材料来自复旦大学法学院劳动法课程，承担期末复习bot的功能。
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
 ![DeepSeek](https://img.shields.io/badge/Model-DeepSeekChat-red?logo=openai)
 ![LlamaIndex](https://img.shields.io/badge/RAG-LlamaIndex-green)
@@ -11,11 +11,11 @@
 
 ## 📌 项目亮点（Overview）
 
-- 利用 **DeepSeek Chat（OpenAI 兼容 API）** 作为大语言模型，避免直接依赖 OpenAI Key（通俗来说适用于OpenAI Key暂时没API的情况）
+- 利用 **DeepSeek Chat** 作为大语言模型，避免直接依赖 OpenAI Key（通俗来说，适用于 OpenAI Key 不方便使用的场景）
 - 使用 **BAAI/bge-small-zh-v1.5** 作为中文嵌入模型，构建法律文本向量索引
 - 基于 **LlamaIndex** 搭建完整 RAG 流程：本地文档加载 → 向量化 → 索引 → 检索 → LLM 生成
-- 支持在终端交互式提问：例如「试用期内能否随意辞退劳动者？」并返回结论 + 引用法条 + 引用类案
-- 对 LlamaIndex 与 OpenAI SDK 进行了一系列“兼容 deepseek-chat”补丁，解决模型识别与 API 401 问题
+- 支持在本地命令行调用：例如「试用期内能否随意辞退劳动者？」并返回公整回答：结论 + 引用法条【法条号+内容】 + 引用类案
+- 自定义适配方式让 DeepSeek Chat 兼容 LlamaIndex 的接口
 
 ---
 
@@ -49,3 +49,8 @@ law_rag_project/
 │
 └── requirements.txt                         # 最小依赖（llama-index, embedding, dotenv 等）
 ```
+
+---
+## 📌 输出结果展示
+
+
