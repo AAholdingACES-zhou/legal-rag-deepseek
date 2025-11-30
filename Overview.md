@@ -7,6 +7,7 @@
 ![Embedding](https://img.shields.io/badge/Embedding-BGE_small_zh_v1.5-yellow)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
+项目链接：https://github.com/AAholdingACES-zhou/legal-rag-deepseek
 ---
 
 ## 📌 项目亮点（Overview）
